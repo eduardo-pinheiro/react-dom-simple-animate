@@ -1,17 +1,19 @@
 import React from 'react';
-import delay from './delay';
-import { AnimateConfig } from "./index";
+import { AnimateConfig } from './index';
 
 interface Props {
-    currentHiddenState: boolean;
-    animationDirection?: 'down' | 'up' | 'left' | 'right';
-    animationCallbackFn?: Function;
-    animationTransitionType?: 'slow' | 'regular' | 'fast';
-    animationMillisecondTransition?: number;
+    isVisible?: boolean;
+    animeDirection?: 'just_opacity' | 'down' | 'up' | 'left' | 'right';
+    transitionType?: 'slow' | 'regular' | 'fast';
+    transitionMillisecond?: number;
+    style?: Object;
+    animateCallbackFn?: Function | any;
 }
 
 interface State {
-    currentHiddenState: boolean;
+    isVisibleByDom: boolean;
+    visibleStyle: Object;
+    transitionMillisecond: number;
 }
 
 export class Animate extends React.Component<Props, State>{
@@ -19,47 +21,91 @@ export class Animate extends React.Component<Props, State>{
     constructor(props: Props) {
         super(props);
         this.state = {
-            currentHiddenState: false,
+            isVisibleByDom: false,
+            transitionMillisecond: AnimateConfig.millisecondTransitionRegular,
+            visibleStyle: {},
         }
     }
 
     componentDidMount = async () => {
-        this.setState({ currentHiddenState: this.props.currentHiddenState });
-    }
-
-    componentDidUpdate = async (prevProps: Props) => {
-        if (prevProps.currentHiddenState !== this.props.currentHiddenState) {
-            this.updateCurrentHiddenState();
+        if (this.props.isVisible !== undefined) {
+            const isVisibleByDom = this.props.isVisible;
+            this.updateIsVisibleByStyle(isVisibleByDom);
+            this.setState({ isVisibleByDom });
+            this.setMillisecondTransition();
+        } else {
+            this.updateIsVisibleByStyle(false);
+            this.updateIsVisibleByStyle(true);
         }
     }
 
-    async updateCurrentHiddenState() {
-        const { currentHiddenState, animationCallbackFn } = this.props;
-        const animationMillisecondTransition = this.getAnimationMillisecondTransition();
-        await delay(animationMillisecondTransition);
-        this.setState({ currentHiddenState });
-        if (animationCallbackFn) animationCallbackFn();
+    componentDidUpdate = async (prevProps: Props) => {
+        if (this.props.isVisible !== undefined && prevProps.isVisible !== this.props.isVisible) {
+            this.updateIsVisibleByStyle(this.props.isVisible);
+        }
+
+        if (
+            prevProps.transitionType !== this.props.transitionType ||
+            prevProps.transitionMillisecond !== this.props.transitionMillisecond
+        ) {
+            this.setMillisecondTransition();
+        }
     }
 
-    getAnimationMillisecondTransition() {
-        const { animationTransitionType, animationMillisecondTransition } = this.props;
-        if (animationMillisecondTransition) return animationMillisecondTransition;
-        switch (animationTransitionType) {
-            case 'slow':
-                return AnimateConfig.millisecondTransitionSlow;
-            case 'regular':
-                return AnimateConfig.millisecondTransitionRegular;
-            case 'fast':
-                return AnimateConfig.millisecondTransitionFast;
-            default:
-                return AnimateConfig.millisecondTransitionRegular;
+    setMillisecondTransition() {
+        let transitionMillisecond = this.props.transitionMillisecond;
+        if (!transitionMillisecond && transitionMillisecond !== 0) {
+            switch (this.props.transitionType) {
+                case 'slow':
+                    transitionMillisecond = AnimateConfig.millisecondTransitionSlow;
+                    break;
+                case 'regular':
+                    transitionMillisecond = AnimateConfig.millisecondTransitionRegular;
+                    break;
+                case 'fast':
+                    transitionMillisecond = AnimateConfig.millisecondTransitionFast;
+                    break;
+                default:
+                    transitionMillisecond = AnimateConfig.millisecondTransitionRegular;
+            }
+        }
+        this.setState({ transitionMillisecond });
+    }
+
+    async updateIsVisibleByStyle(isVisible: boolean) {
+        if (!isVisible) {
+            let visibleStyle = AnimateConfig.animeDirection.just_opacity;
+            if (this.props.animeDirection) visibleStyle = AnimateConfig.animeDirection[this.props.animeDirection];
+            this.setState({ visibleStyle });
+        } else {
+            await this.setState({ isVisibleByDom: true });
+            setTimeout(() => {
+                this.setState({ visibleStyle: {} });
+            });
+        }
+    }
+
+    updateIsVisibleByDom() {
+        if (this.props.isVisible !== undefined) {
+            const isVisibleByDom = this.props.isVisible;
+            if (this.props.animateCallbackFn) this.props.animateCallbackFn(isVisibleByDom);
+            this.setState({ isVisibleByDom });
         }
     }
 
     render() {
-        if (this.state.currentHiddenState) return null;
+        if (!this.state.isVisibleByDom) return null;
         return (
-            <div>{this.props.children}</div>
+            <div
+                onTransitionEnd={() => this.updateIsVisibleByDom()}
+                style={Object.assign(
+                    { 'transition': this.state.transitionMillisecond / 1000 + 's' },
+                    this.state.visibleStyle,
+                    this.props.style || {},
+                )}
+            >
+                {this.props.children}
+            </div>
         )
     }
 }
