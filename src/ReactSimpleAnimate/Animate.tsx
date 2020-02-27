@@ -7,6 +7,7 @@ interface Props {
     transitionType?: 'slow' | 'regular' | 'fast';
     transitionMillisecond?: number;
     style?: Object;
+    tagName?: string;
     animateCallbackFn?: Function | any;
 }
 
@@ -95,8 +96,10 @@ export class Animate extends React.Component<Props, State>{
 
     render() {
         if (!this.state.isVisibleByDom) return null;
+        const Tag = this.props.tagName || 'div';
         return (
-            <div
+            //@ts-ignore
+            <Tag
                 onTransitionEnd={() => this.updateIsVisibleByDom()}
                 style={Object.assign(
                     { 'transition': this.state.transitionMillisecond / 1000 + 's' },
@@ -105,7 +108,7 @@ export class Animate extends React.Component<Props, State>{
                 )}
             >
                 {this.props.children}
-            </div>
+            </Tag>
         )
     }
 }
