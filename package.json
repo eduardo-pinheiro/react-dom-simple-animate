@@ -1,8 +1,8 @@
 {
-  "name": "ploomes-react-simple-animate",
+  "name": "react-simple-animation",
   "author": {
     "name": "Eduardo Pinheiro",
-    "email" : "hello@eduardopinheiro.dev"
+    "email": "hello@eduardopinheiro.dev"
   },
   "repository": {
     "url": "https://github.com/eduardo-pinheiro/react-simple-animate",
@@ -33,16 +33,10 @@
     "tslib": "^1.10.0",
     "typescript": "^3.7.2"
   },
-  "peerDependencies": {
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "styled-components": "^4.4.1"
-  },
   "scripts": {
     "build": "rollup -c",
     "build-watch": "rollup -c -w",
     "prepublishOnly": "npm run build",
-    "postinstall": "install-peers -f && cd example && npm i",
     "start-example": "cd example && npm start",
     "deploy-example": "cd example && npm run deploy",
     "dev": "concurrently --kill-others \"npm run build-watch\" \"npm run start-example\"",
