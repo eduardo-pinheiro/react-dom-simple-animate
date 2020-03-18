@@ -24,7 +24,7 @@ export class AnimateConfig {
     },
     left: {
       opacity: 0,
-      transform: "translate(50px)",
+      transform: "translateX(50px)",
       pointerEvents: 'none',
     },
   }
